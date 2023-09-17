@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Тарифы МТС!</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: "Calibri", Arial, sans-serif;
+        }
+
+        .table-container {
+            text-align: center;
+        }
+
+        table {
+            font-size: 18px; /* Увеличьте размер шрифта на 4 пункта */
+            border-collapse: collapse;
+            width: 80%; /* Ширина таблицы */
+            margin-bottom: 20px; /* Добавляет отступ между таблицей и изображением */
+        }
+
+        th, td {
+            padding: 10px 20px; /* Увеличьте отступы между столбцами */
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            cursor: pointer;
+        }
+
+        img {
+            width: 130px; /* Укажите желаемую ширину изображения */
+
+        }
+
+        .filter-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .content-container {
+            display: flex;
+            align-items: flex-start; /* Выравнивание элементов по верхнему краю */
+        }
+
+        /* Стили для полей ввода */
+        input[type="text"] {
+            width: 50px; /* Уменьшение ширины до 7px */
+        }
+}
+
+
+    </style>
+    <script>
+        function sortTable(column) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById("tariffTable");
+            switching = true;
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("td")[column];
+                    y = rows[i + 1].getElementsByTagName("td")[column];
+
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        }
+
+        function filterByPrice() {
+            var table, rows, priceColumn, minValue, maxValue, i, txtValue;
+            table = document.getElementById("tariffTable");
+            priceColumn = 3; // Номер столбца с ценой (начиная с 0)
+            minValue = parseFloat(document.getElementById("minPrice").value);
+            maxValue = parseFloat(document.getElementById("maxPrice").value);
+
+            rows = table.getElementsByTagName("tr");
+
+            for (i = 1; i < rows.length; i++) {
+                var row = rows[i];
+                txtValue = parseFloat(row.cells[priceColumn].textContent);
+
+                if ((isNaN(minValue) || txtValue >= minValue) && (isNaN(maxValue) || txtValue <= maxValue)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            }
+        }
+
+
+
+    </script>
+</head>
+<body>
+<h1>Вот наши прекрасные тарифы:</h1>
+<div class="filter-container">
+    <h3>Цена</h3>
+    <label for="minPrice">От:</label>
+    <input type="text" id="minPrice" oninput="filterByPrice()">
+    <label for="maxPrice">До:</label>
+    <input type="text" id="maxPrice" oninput="filterByPrice()">
+</div>
+<div class="content-container">
+    <div class="table-container">
+        <table id="tariffTable">
+            <tr>
+                <th onclick="sortTable(0)">Тарифы</th>
+                <th onclick="sortTable(1)">Опции</th>
+                <th onclick="sortTable(2)">Описание</th>
+                <th onclick="sortTable(3)">Цена</th>
+            </tr>
+            <tr th:each="tariff : ${tariffList}">
+                <td th:text="${tariff.name}"></td>
+                <td th:text="${tariff.options}"></td>
+                <td th:text="${tariff.description}"></td>
+                <td th:text="${tariff.price}"></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<a href="#" onclick="parseTable()">
+    <img src="button.png" alt="Парсить">
+</a>
+
+<form action="/parse" method="post" style="display: none;">
+    <input type="button" name="_csrf" value="${_csrf.token}"/>
+</form>
+
+<script>
+    function parseTable() {
+        var form = document.querySelector("form");
+        form.submit();
+    }
+</script>
+
+</body>
+</html>
